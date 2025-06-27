@@ -66,14 +66,23 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                 RecordKind::SRV { port, .. } => Some(*port),
                 _ => None,
             })
-            .unwrap_or(wt.port); // fallback to our port if not found
+            // fallback to our port if not found
+            .unwrap_or(wt.port);
         // Validate peer_id and port
         if peer_id.is_empty() || peer_port == 0 {
             continue; // Skip invalid peer
         }
+        // Validate peer_name (non-empty, reasonable length)
+        if peer_name.trim().is_empty() || peer_name.len() > 64 {
+            continue; // Skip invalid peer name
+        }
         if let Some(ip) = addr {
             // Ignore self
             if peer_id == wt.peer_id {
+                continue;
+            }
+            // Validate IP address (skip loopback and multicast)
+            if ip.is_loopback() || ip.is_multicast() {
                 continue;
             }
             let peer = PeerInfo {
@@ -82,6 +91,9 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                 ip,
                 port: peer_port, // Use discovered port
             };
+            if !peer.is_valid() {
+                continue;
+            }
             let mut peers = wt.peers.lock().await;
             if !peers.contains_key(&peer.id) {
                 println!(
@@ -95,6 +107,12 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                     ip, // fallback to discovered IP if local IP is not available
                     port: wt.port,
                 };
+                if !my_info.is_valid() {
+                    println!(
+                        "⚠️  Warning: Our PeerInfo is invalid, not sending discovery message."
+                    );
+                    continue;
+                }
                 let msg = NetworkMessage::Discovery(my_info);
                 let socket_addr = std::net::SocketAddr::new(ip, peer_port);
                 let msg_bytes = serde_json::to_vec(&msg).unwrap();

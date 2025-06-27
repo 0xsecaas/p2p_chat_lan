@@ -52,6 +52,11 @@ pub async fn handle_tcp_connection(
                                 // Ignore our own Discovery messages
                                 return Ok(());
                             }
+                            // Validate discovered peer before adding
+                            if !peer_info.is_valid() {
+                                eprintln!("Invalid peer info received via TCP: {:?}", peer_info);
+                                return Ok(());
+                            }
                             let mut peers = peers.lock().await;
                             if !peers.contains_key(&peer_info.id) {
                                 println!(

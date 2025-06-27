@@ -67,6 +67,10 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieErro
                 } else {
                     println!("👥 Discovered peers:");
                     for peer in peers.values() {
+                        if !peer.is_valid() {
+                            println!("  - Invalid peer: {:?}", peer);
+                            continue;
+                        }
                         println!(
                             "  - {} ({}) at {}:{}",
                             peer.name, peer.id, peer.ip, peer.port

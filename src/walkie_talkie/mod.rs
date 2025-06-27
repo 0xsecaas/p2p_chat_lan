@@ -36,6 +36,14 @@ pub struct WalkieTalkie {
 
 impl WalkieTalkie {
     pub fn new(name: String, port: u16) -> Self {
+        // Validate name and port
+        let valid_name = name.trim();
+        let name = if valid_name.is_empty() || valid_name.len() > 64 {
+            "Anonymous".to_string()
+        } else {
+            valid_name.to_string()
+        };
+        let port = if port == 0 { 8080 } else { port };
         let peer_id = Uuid::new_v4().to_string();
         let (message_sender, _) = tokio::sync::broadcast::channel(100);
         Self {

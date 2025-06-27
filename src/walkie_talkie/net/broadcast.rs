@@ -20,6 +20,10 @@ pub async fn broadcast_message(wt: &WalkieTalkie, content: &str) -> Result<(), W
     let peers = wt.peers.lock().await;
     let mut successful_sends = 0;
     for peer in peers.values() {
+        if !peer.is_valid() {
+            eprintln!("Skipping invalid peer: {:?}", peer);
+            continue;
+        }
         if let Ok(mut stream) = TcpStream::connect((peer.ip, peer.port)).await {
             if stream.write_all(&msg_bytes).await.is_ok() {
                 successful_sends += 1;
