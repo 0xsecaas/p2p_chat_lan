@@ -61,26 +61,31 @@ impl WalkieTalkie {
             result = tcp_listener => {
                 if let Err(e) = result {
                     eprintln!("TCP listener error: {}", e);
+                    std::process::exit(1);
                 }
             }
             result = mdns_discovery => {
                 if let Err(e) = result {
                     eprintln!("mDNS discovery error: {}", e);
+                    std::process::exit(1);
                 }
             }
             result = heartbeat_sender => {
                 if let Err(e) = result {
                     eprintln!("Heartbeat sender error: {}", e);
+                    std::process::exit(1);
                 }
             }
             result = cli_handler => {
                 if let Err(e) = result {
                     eprintln!("CLI handler error: {}", e);
+                    std::process::exit(1);
                 }
             }
             result = message_display => {
                 if let Err(e) = result {
                     eprintln!("Message display error: {}", e);
+                    std::process::exit(1);
                 }
             }
         }
