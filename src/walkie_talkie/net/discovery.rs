@@ -2,6 +2,7 @@ use crate::peer::{NetworkMessage, PeerInfo};
 use crate::walkie_talkie::WalkieTalkie;
 use chrono::Utc;
 use colored::*;
+use local_ip_address::local_ip;
 use serde_json;
 use tokio::net::UdpSocket;
 use tokio::time::{sleep, Duration};
@@ -12,7 +13,7 @@ pub async fn start_discovery_broadcast(
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.set_broadcast(true)?;
 
-    let local_ip = local_ip_address::local_ip()?;
+    let local_ip = local_ip()?;
     let peer_info = PeerInfo {
         id: wt.peer_id.clone(),
         name: wt.name.clone(),
