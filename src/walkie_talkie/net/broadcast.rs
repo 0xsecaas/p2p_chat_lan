@@ -21,13 +21,10 @@ pub async fn broadcast_message(
     let peers = wt.peers.lock().await;
     let mut successful_sends = 0;
     for peer in peers.values() {
-        match TcpStream::connect((peer.ip, peer.port)).await {
-            Ok(mut stream) => {
-                if stream.write_all(&msg_bytes).await.is_ok() {
-                    successful_sends += 1;
-                }
+        if let Ok(mut stream) = TcpStream::connect((peer.ip, peer.port)).await {
+            if stream.write_all(&msg_bytes).await.is_ok() {
+                successful_sends += 1;
             }
-            Err(_) => {}
         }
     }
     if successful_sends > 0 {

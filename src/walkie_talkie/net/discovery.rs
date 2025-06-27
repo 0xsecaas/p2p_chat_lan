@@ -80,7 +80,7 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), Box<dyn std::error:
                 let my_info = PeerInfo {
                     id: wt.peer_id.clone(),
                     name: wt.name.clone(),
-                    ip: ip, // fallback to discovered IP if local IP is not available
+                    ip, // fallback to discovered IP if local IP is not available
                     port: wt.port,
                 };
                 let msg = NetworkMessage::Discovery(my_info);
