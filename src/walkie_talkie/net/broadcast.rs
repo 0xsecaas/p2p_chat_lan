@@ -37,3 +37,29 @@ pub async fn broadcast_message(wt: &WalkieTalkie, content: &str) -> Result<(), W
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::peer::PeerInfo;
+    use std::net::IpAddr;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_peerinfo_is_valid_for_broadcast() {
+        let valid_peer = PeerInfo {
+            id: "id1".to_string(),
+            name: "Peer1".to_string(),
+            ip: IpAddr::from_str("192.168.1.10").unwrap(),
+            port: 9000,
+        };
+        assert!(valid_peer.is_valid());
+
+        let invalid_peer = PeerInfo {
+            id: "".to_string(),
+            name: "".to_string(),
+            ip: IpAddr::from_str("0.0.0.0").unwrap(),
+            port: 0,
+        };
+        assert!(!invalid_peer.is_valid());
+    }
+}

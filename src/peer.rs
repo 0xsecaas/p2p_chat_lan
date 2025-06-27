@@ -43,3 +43,64 @@ pub enum NetworkMessage {
     Heartbeat(String), // peer_id
     Exit(String),      // peer_id
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::IpAddr;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_peer_info_valid() {
+        let valid_peer = PeerInfo {
+            id: "abc123".to_string(),
+            name: "Alice".to_string(),
+            ip: IpAddr::from_str("192.168.1.2").unwrap(),
+            port: 9000,
+        };
+        assert!(valid_peer.is_valid());
+
+        let invalid_peer = PeerInfo {
+            id: "".to_string(),
+            name: "".to_string(),
+            ip: IpAddr::from_str("127.0.0.1").unwrap(),
+            port: 0,
+        };
+        assert!(!invalid_peer.is_valid());
+    }
+
+    #[test]
+    fn test_peer_name_length() {
+        let long_name = "a".repeat(65);
+        let peer = PeerInfo {
+            id: "id".to_string(),
+            name: long_name,
+            ip: IpAddr::from_str("10.0.0.1").unwrap(),
+            port: 1234,
+        };
+        assert!(!peer.is_valid());
+    }
+
+    #[test]
+    fn test_message_content() {
+        let msg = Message {
+            from_id: "id1".to_string(),
+            from_name: "Alice".to_string(),
+            content: "Hello, world!".to_string(),
+            timestamp: 1234567890,
+        };
+        assert_eq!(msg.content, "Hello, world!");
+        assert!(!msg.content.is_empty());
+    }
+
+    #[test]
+    fn test_message_empty_content() {
+        let msg = Message {
+            from_id: "id2".to_string(),
+            from_name: "Bob".to_string(),
+            content: "".to_string(),
+            timestamp: 1234567890,
+        };
+        assert!(msg.content.is_empty());
+    }
+}

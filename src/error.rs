@@ -8,8 +8,6 @@ pub enum WalkieTalkieError {
     Network(String),
     #[error("Serialization error: {0}")]
     Serialization(String),
-    #[error("Peer error: {0}")]
-    Peer(String),
     #[error("Unknown error: {0}")]
     Unknown(String),
 }

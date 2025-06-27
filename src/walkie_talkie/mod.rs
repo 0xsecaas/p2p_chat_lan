@@ -111,3 +111,30 @@ impl WalkieTalkie {
         net::broadcast::broadcast_message(self, content).await
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use std::net::IpAddr;
+    use std::str::FromStr;
+
+    #[test]
+    fn test_peer_info_creation() {
+        let peer = PeerInfo {
+            id: "test-id".to_string(),
+            name: "TestPeer".to_string(),
+            ip: IpAddr::from_str("127.0.0.1").unwrap(),
+            port: 8080,
+        };
+        assert_eq!(peer.name, "TestPeer");
+        assert_eq!(peer.port, 8080);
+    }
+
+    #[test]
+    fn test_walkie_talkie_new() {
+        let wt = WalkieTalkie::new("Tester".to_string(), 9000);
+        assert_eq!(wt.name, "Tester");
+        assert_eq!(wt.port, 9000);
+    }
+}

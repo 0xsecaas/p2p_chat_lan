@@ -92,3 +92,30 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieErro
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_walkie_talkie_name_validation() {
+        let wt = WalkieTalkie::new("".to_string(), 9000);
+        assert_eq!(wt.name, "Anonymous");
+
+        let long_name = "a".repeat(100);
+        let wt2 = WalkieTalkie::new(long_name, 9000);
+        assert_eq!(wt2.name, "Anonymous");
+
+        let valid_name = "Bob".to_string();
+        let wt3 = WalkieTalkie::new(valid_name.clone(), 9000);
+        assert_eq!(wt3.name, valid_name);
+    }
+
+    #[test]
+    fn test_walkie_talkie_port_validation() {
+        let wt = WalkieTalkie::new("Alice".to_string(), 0);
+        assert_eq!(wt.port, 8080);
+        let wt2 = WalkieTalkie::new("Alice".to_string(), 1234);
+        assert_eq!(wt2.port, 1234);
+    }
+}
