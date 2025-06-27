@@ -17,6 +17,7 @@ pub mod display {
     pub mod message_display;
 }
 
+use crate::error::WalkieTalkieError;
 use crate::peer::PeerInfo;
 use colored::*;
 use std::collections::HashMap;
@@ -98,7 +99,7 @@ impl WalkieTalkie {
         }
         Ok(())
     }
-    pub async fn broadcast_message(&self, content: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn broadcast_message(&self, content: &str) -> Result<(), WalkieTalkieError> {
         net::broadcast::broadcast_message(self, content).await
     }
 }

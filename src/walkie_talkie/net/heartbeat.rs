@@ -3,8 +3,9 @@ use crate::walkie_talkie::WalkieTalkie;
 use serde_json;
 use tokio::net::UdpSocket;
 use tokio::time::{sleep, Duration};
+use crate::error::WalkieTalkieError;
 
-pub async fn start_heartbeat(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_heartbeat(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.set_broadcast(true)?;
     loop {

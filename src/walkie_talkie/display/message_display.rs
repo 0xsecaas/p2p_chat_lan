@@ -5,10 +5,11 @@
 //! run asynchronously, and it expects a reference to a `WalkieTalkie` instance, which
 //! manages the underlying message sending and receiving.
 
+use crate::error::WalkieTalkieError;
 use crate::walkie_talkie::WalkieTalkie;
 use tokio::sync::broadcast;
 
-pub async fn start_message_display(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_message_display(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
     let mut receiver = wt.message_sender.subscribe();
     loop {
         match receiver.recv().await {

@@ -4,6 +4,7 @@
 //! handling incoming messages, and broadcasting outgoing messages.
 //! It utilizes Tokio's asynchronous runtime for non-blocking I/O operations.
 
+use crate::error::WalkieTalkieError;
 use crate::peer::{NetworkMessage, PeerInfo};
 use chrono::Utc;
 use colored::*;
@@ -20,7 +21,7 @@ pub async fn handle_tcp_connection(
     peers: Arc<Mutex<HashMap<String, PeerInfo>>>,
     message_sender: broadcast::Sender<String>,
     peer_id: String,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), WalkieTalkieError> {
     let mut buf = [0; 1024];
 
     while let Ok(_n) = stream.readable().await {
@@ -60,19 +61,12 @@ pub async fn handle_tcp_connection(
                             }
                             peers.insert(peer_info.id.clone(), peer_info);
                         }
-                        _ => {}
+                        NetworkMessage::Heartbeat(_) => {}
                     }
                 }
             }
-            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                continue;
-            }
-            Err(e) => {
-                eprintln!("Error reading from TCP stream: {}", e);
-                break;
-            }
+            Err(e) => return Err(WalkieTalkieError::Network(e.to_string())),
         }
     }
-
     Ok(())
 }

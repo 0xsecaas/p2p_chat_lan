@@ -3,6 +3,7 @@
 //! This module is responsible for discovering and advertising peers in the walkie-talkie network using mDNS.
 //! It handles both the sending and receiving of peer information, as well as the management of discovered peers.
 
+use crate::error::WalkieTalkieError;
 use crate::peer::{NetworkMessage, PeerInfo};
 use crate::walkie_talkie::WalkieTalkie;
 use futures_util::{pin_mut, stream::StreamExt};
@@ -14,7 +15,7 @@ use tokio::net::TcpStream;
 
 const SERVICE_NAME: &str = "_walkietalkie._udp.local";
 
-pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> {
     // Spawn advertisement in a blocking thread
     let wt_ad = wt.clone();
     tokio::task::spawn_blocking(move || {
@@ -31,7 +32,9 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), Box<dyn std::error:
     });
 
     // Discovery
-    let stream = mdns::discover::all(SERVICE_NAME, Duration::from_secs(15))?.listen();
+    let stream = mdns::discover::all(SERVICE_NAME, Duration::from_secs(15))
+        .map_err(|e| WalkieTalkieError::Network(e.to_string()))?
+        .listen();
     pin_mut!(stream);
     while let Some(Ok(response)) = stream.next().await {
         let addr = response.records().filter_map(to_ip_addr).next();
@@ -64,6 +67,10 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), Box<dyn std::error:
                 _ => None,
             })
             .unwrap_or(wt.port); // fallback to our port if not found
+        // Validate peer_id and port
+        if peer_id.is_empty() || peer_port == 0 {
+            continue; // Skip invalid peer
+        }
         if let Some(ip) = addr {
             // Ignore self
             if peer_id == wt.peer_id {

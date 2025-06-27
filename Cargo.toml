@@ -15,6 +15,7 @@ clap = { version = "4.5.40", features = ["derive"] }
 futures-util = "0.3.31"
 libmdns = "0.9.1"
 mdns = "3.0.0"
+thiserror = "1.0"
 
 [lib]
 name = "p2p_walkie_talkie"

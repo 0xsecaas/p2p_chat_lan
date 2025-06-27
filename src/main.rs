@@ -6,6 +6,7 @@
 
 use std::sync::Arc;
 mod cli;
+mod error;
 mod network;
 mod peer;
 mod signal;

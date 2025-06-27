@@ -5,3 +5,4 @@ pub mod peer;
 pub mod network;
 pub mod signal;
 pub mod cli;
+pub mod error;

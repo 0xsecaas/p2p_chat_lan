@@ -5,13 +5,14 @@
 //! listing peers, sending messages, and quitting the application. Additionally, it manages the
 //! broadcasting of exit signals to all connected peers when a user decides to quit.
 
+use crate::error::WalkieTalkieError;
 use crate::peer::NetworkMessage;
 use crate::walkie_talkie::WalkieTalkie;
 use serde_json;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
     let exit_msg = NetworkMessage::Exit(wt.peer_id.clone());
     let msg_bytes = serde_json::to_vec(&exit_msg)?;
     let peers = wt.peers.lock().await;
@@ -24,7 +25,7 @@ pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error:
     Ok(())
 }
 
-pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
     println!("\n📋 Commands:");
     println!("  /list    - List discovered peers");
     println!("  /msg <message> - Send message to all peers");
@@ -36,7 +37,7 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), Box<dyn std::err
     let mut line = String::new();
 
     loop {
-        print!("\u{1F4AC} ");
+        print!("💬 ");
         std::io::Write::flush(&mut std::io::stdout()).unwrap();
         line.clear();
         if reader.read_line(&mut line).await? == 0 {
@@ -44,6 +45,11 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), Box<dyn std::err
         }
         let input = line.trim();
         if input.is_empty() {
+            continue;
+        }
+        // Validate input length
+        if input.len() > 512 {
+            println!("Input too long. Please keep messages under 512 characters.");
             continue;
         }
         match input {
