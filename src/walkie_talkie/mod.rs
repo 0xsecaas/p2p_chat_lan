@@ -38,7 +38,7 @@ impl WalkieTalkie {
     pub fn new(name: String, port: u16) -> Self {
         // Validate name and port
         let valid_name = name.trim();
-        let name = if valid_name.is_empty() || valid_name.len() > 64 {
+        let name = if valid_name.is_empty() || valid_name.len() > 128 {
             "Anonymous".to_string()
         } else {
             valid_name.to_string()

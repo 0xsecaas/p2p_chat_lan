@@ -70,19 +70,23 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
             .unwrap_or(wt.port);
         // Validate peer_id and port
         if peer_id.is_empty() || peer_port == 0 {
+            eprint!("⚠️  Warning: Discovered peer has invalid ID or port.");
             continue; // Skip invalid peer
         }
         // Validate peer_name (non-empty, reasonable length)
-        if peer_name.trim().is_empty() || peer_name.len() > 64 {
+        if peer_name.trim().is_empty() || peer_name.len() > 128 {
+            eprint!("⚠️  Warning: Discovered peer has invalid name.");
             continue; // Skip invalid peer name
         }
         if let Some(ip) = addr {
             // Ignore self
             if peer_id == wt.peer_id {
+                eprint!("⚠️  Warning: Discovered peer is ourselves.");
                 continue;
             }
             // Validate IP address (skip loopback and multicast)
             if ip.is_loopback() || ip.is_multicast() {
+                eprint!("⚠️  Warning: Discovered peer has invalid IP address.");
                 continue;
             }
             let peer = PeerInfo {
@@ -92,6 +96,10 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                 port: peer_port, // Use discovered port
             };
             if !peer.is_valid() {
+                eprint!(
+                    "⚠️  Warning: Discovered peer has invalid PeerInfo. {:?}",
+                    peer
+                );
                 continue;
             }
             let mut peers = wt.peers.lock().await;

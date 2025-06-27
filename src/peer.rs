@@ -21,7 +21,7 @@ impl PeerInfo {
     pub fn is_valid(&self) -> bool {
         !self.id.trim().is_empty()
             && !self.name.trim().is_empty()
-            && self.name.len() <= 64
+            && self.name.len() <= 128
             && self.port > 0
             && !self.ip.is_loopback()
             && !self.ip.is_multicast()
