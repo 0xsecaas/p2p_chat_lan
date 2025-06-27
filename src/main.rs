@@ -1,7 +1,9 @@
+use std::sync::Arc;
 mod cli;
 mod gui;
 mod network;
 mod peer;
+mod signal;
 mod walkie_talkie;
 
 use clap::Parser;
@@ -22,7 +24,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
         Commands::Start { port, name } => {
             let walkie_talkie = WalkieTalkie::new(name, port);
-            walkie_talkie.start().await?;
+            let wt_arc = Arc::new(walkie_talkie);
+            let wt_signal = wt_arc.clone();
+            tokio::spawn(async move {
+                crate::signal::handle_signals(wt_signal).await;
+            });
+            wt_arc.start().await?;
         }
     }
 

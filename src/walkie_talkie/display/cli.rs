@@ -4,6 +4,19 @@ use serde_json;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
+pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
+    let exit_msg = NetworkMessage::Exit(wt.peer_id.clone());
+    let msg_bytes = serde_json::to_vec(&exit_msg)?;
+    let peers = wt.peers.lock().await;
+    for peer in peers.values() {
+        if let Ok(mut stream) = TcpStream::connect((peer.ip, peer.port)).await {
+            let _ = stream.write_all(&msg_bytes).await;
+            println!("Quit broadcasted to {} ({})", peer.name, peer.id);
+        }
+    }
+    Ok(())
+}
+
 pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n📋 Commands:");
     println!("  /list    - List discovered peers");
@@ -28,16 +41,10 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), Box<dyn std::err
         }
         match input {
             "/quit" => {
-                let exit_msg = NetworkMessage::Exit(wt.peer_id.clone());
-                let msg_bytes = serde_json::to_vec(&exit_msg)?;
-                let peers = wt.peers.lock().await;
-                for peer in peers.values() {
-                    if let Ok(mut stream) = TcpStream::connect((peer.ip, peer.port)).await {
-                        let _ = stream.write_all(&msg_bytes).await;
-                        println!("Quit broadcasted to {} ({})", peer.name, peer.id);
-                    }
+                if let Err(e) = crate::walkie_talkie::display::cli::broadcast_exit(wt).await {
+                    eprintln!("Error broadcasting exit: {}", e);
                 }
-                println!("\u{1F44B} Now Goodbye!!");
+                println!("\u{1F44B} Now Goodbye!");
                 std::process::exit(0);
             }
             "/list" => {
