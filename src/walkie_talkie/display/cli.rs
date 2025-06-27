@@ -1,3 +1,10 @@
+//! CLI display module: Handles user input, command parsing, and broadcasting messages or exit signals to peers.
+//!
+//! This module provides the functionality for the command-line interface (CLI) of the application,
+//! allowing users to interact with the Walkie Talkie network. It handles user commands such as
+//! listing peers, sending messages, and quitting the application. Additionally, it manages the
+//! broadcasting of exit signals to all connected peers when a user decides to quit.
+
 use crate::peer::NetworkMessage;
 use crate::walkie_talkie::WalkieTalkie;
 use serde_json;

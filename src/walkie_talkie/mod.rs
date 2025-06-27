@@ -1,3 +1,10 @@
+//! WalkieTalkie module: Provides the main struct and logic for peer-to-peer walkie-talkie functionality, including peer management, message broadcasting, and coordination of submodules.
+//!
+//! This module defines the `WalkieTalkie` struct, which represents a peer in the walkie-talkie network.
+//! It handles the initialization of the peer, starting of necessary services like TCP listener,
+//! mDNS discovery, heartbeat sending, and CLI handling. It also provides functionality to broadcast
+//! messages to other peers.
+
 pub mod net {
     pub mod broadcast;
     pub mod discovery;

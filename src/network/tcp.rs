@@ -1,3 +1,9 @@
+//! TCP network module: Handles TCP connection logic for peer communication in the P2P walkie-talkie.
+//!
+//! This module is responsible for managing TCP connections with peers,
+//! handling incoming messages, and broadcasting outgoing messages.
+//! It utilizes Tokio's asynchronous runtime for non-blocking I/O operations.
+
 use crate::peer::{NetworkMessage, PeerInfo};
 use chrono::Utc;
 use colored::*;

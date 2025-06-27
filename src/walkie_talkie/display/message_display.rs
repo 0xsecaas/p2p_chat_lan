@@ -1,3 +1,10 @@
+//! Message display module: Responsible for displaying incoming messages to the user in the CLI.
+//! 
+//! This module contains the `start_message_display` function, which listens for messages
+//! on a broadcast channel and prints them to the standard output. It is designed to be
+//! run asynchronously, and it expects a reference to a `WalkieTalkie` instance, which
+//! manages the underlying message sending and receiving.
+
 use crate::walkie_talkie::WalkieTalkie;
 use tokio::sync::broadcast;
 

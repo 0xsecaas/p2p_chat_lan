@@ -1,3 +1,8 @@
+//! Peer discovery module: Handles mDNS-based peer discovery and advertisement for the P2P walkie-talkie network.
+//! 
+//! This module is responsible for discovering and advertising peers in the walkie-talkie network using mDNS.
+//! It handles both the sending and receiving of peer information, as well as the management of discovered peers.
+
 use crate::peer::{NetworkMessage, PeerInfo};
 use crate::walkie_talkie::WalkieTalkie;
 use futures_util::{pin_mut, stream::StreamExt};

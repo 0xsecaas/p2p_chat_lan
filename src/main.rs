@@ -1,3 +1,9 @@
+//! Main entry point: Sets up CLI, initializes the WalkieTalkie, and starts the async runtime.
+//!
+//! This module is responsible for parsing command line arguments using Clap,
+//! and starting the WalkieTalkie service which facilitates peer-to-peer
+//! communication over a network.
+
 use std::sync::Arc;
 mod cli;
 mod network;

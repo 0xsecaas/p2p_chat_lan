@@ -1,3 +1,10 @@
+//! Peer module: Defines peer information, message types, and network message enums for the P2P walkie-talkie.
+//!
+//! This module contains the structures and enums used for peer discovery, messaging, and network
+//! communication in the P2P walkie-talkie application. It includes the `PeerInfo` struct for
+//! identifying peers in the network, the `Message` struct for chat messages, and the `NetworkMessage`
+//! enum for different types of network messages.
+
 use serde::{Deserialize, Serialize};
 use std::net::IpAddr;
 
