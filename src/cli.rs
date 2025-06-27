@@ -13,7 +13,7 @@ pub enum Commands {
     /// Start the walkie-talkie (discover peers and listen for messages)
     Start {
         /// Port to listen on for TCP connections
-        #[arg(short, long, default_value = "8080")]
+        #[arg(short, long, default_value = "9999")]
         port: u16,
         /// Your display name
         #[arg(short, long, default_value = "Anonymous")]

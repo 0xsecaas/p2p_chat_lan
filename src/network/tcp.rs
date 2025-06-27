@@ -13,6 +13,7 @@ pub async fn handle_tcp_connection(
     _addr: SocketAddr,
     peers: Arc<Mutex<HashMap<String, PeerInfo>>>,
     message_sender: broadcast::Sender<String>,
+    peer_id: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut buf = [0; 1024];
 
@@ -38,6 +39,20 @@ pub async fn handle_tcp_connection(
                                     peer_id.bright_yellow()
                                 );
                             }
+                        }
+                        NetworkMessage::Discovery(peer_info) => {
+                            if peer_info.id == peer_id {
+                                // Ignore our own Discovery messages
+                                return Ok(());
+                            }
+                            let mut peers = peers.lock().await;
+                            if !peers.contains_key(&peer_info.id) {
+                                println!(
+                                    "🔗 Discovered peer via TCP: {} at {}",
+                                    peer_info.name, peer_info.ip
+                                );
+                            }
+                            peers.insert(peer_info.id.clone(), peer_info);
                         }
                         _ => {}
                     }

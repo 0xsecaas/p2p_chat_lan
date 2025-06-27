@@ -17,6 +17,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+#[derive(Clone)]
 pub struct WalkieTalkie {
     pub peer_id: String,
     pub name: String,
@@ -51,8 +52,7 @@ impl WalkieTalkie {
 
         // Start all services concurrently
         let tcp_listener = net::listener::start_tcp_listener(self);
-        let discovery_broadcaster = net::discovery::start_discovery_broadcast(self);
-        let discovery_listener = net::discovery::start_discovery_listener(self);
+        let mdns_discovery = net::discovery::start_mdns(Arc::new(self.clone()));
         let heartbeat_sender = net::heartbeat::start_heartbeat(self);
         let cli_handler = display::cli::start_cli_handler(self);
         let message_display = display::message_display::start_message_display(self);
@@ -63,14 +63,9 @@ impl WalkieTalkie {
                     eprintln!("TCP listener error: {}", e);
                 }
             }
-            result = discovery_broadcaster => {
+            result = mdns_discovery => {
                 if let Err(e) = result {
-                    eprintln!("Discovery broadcaster error: {}", e);
-                }
-            }
-            result = discovery_listener => {
-                if let Err(e) = result {
-                    eprintln!("Discovery listener error: {}", e);
+                    eprintln!("mDNS discovery error: {}", e);
                 }
             }
             result = heartbeat_sender => {

@@ -1,90 +1,107 @@
 use crate::peer::{NetworkMessage, PeerInfo};
 use crate::walkie_talkie::WalkieTalkie;
-use chrono::Utc;
-use colored::*;
-use local_ip_address::local_ip;
-use serde_json;
-use tokio::net::UdpSocket;
-use tokio::time::{sleep, Duration};
+use futures_util::{pin_mut, stream::StreamExt};
+use libmdns;
+use mdns::{Record, RecordKind};
+use std::{net::IpAddr, sync::Arc, time::Duration};
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 
-pub async fn start_discovery_broadcast(
-    wt: &WalkieTalkie,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let socket = UdpSocket::bind("0.0.0.0:0").await?;
-    socket.set_broadcast(true)?;
+const SERVICE_NAME: &str = "_walkietalkie._udp.local";
 
-    let local_ip = local_ip()?;
-    let peer_info = PeerInfo {
-        id: wt.peer_id.clone(),
-        name: wt.name.clone(),
-        ip: local_ip,
-        port: wt.port,
-    };
-
-    loop {
-        let discovery_msg = NetworkMessage::Discovery(peer_info.clone());
-        let msg_bytes = serde_json::to_vec(&discovery_msg)?;
-
-        if let Err(e) = socket.send_to(&msg_bytes, "255.255.255.255:9999").await {
-            eprintln!("Failed to send discovery broadcast: {}", e);
+pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), Box<dyn std::error::Error>> {
+    // Spawn advertisement in a blocking thread
+    let wt_ad = wt.clone();
+    tokio::task::spawn_blocking(move || {
+        let responder = libmdns::Responder::new().unwrap();
+        let _svc = responder.register(
+            "_walkietalkie._udp".to_owned(),
+            format!("{}-{}", wt_ad.name, wt_ad.peer_id),
+            wt_ad.port,
+            &[&format!("peer_id={}", wt_ad.peer_id)],
+        );
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(10));
         }
-        sleep(Duration::from_secs(5)).await;
+    });
+
+    // Discovery
+    let stream = mdns::discover::all(SERVICE_NAME, Duration::from_secs(15))?.listen();
+    pin_mut!(stream);
+    while let Some(Ok(response)) = stream.next().await {
+        let addr = response.records().filter_map(to_ip_addr).next();
+        let peer_name = response
+            .records()
+            .find_map(|r| match &r.kind {
+                RecordKind::PTR(name) => Some(name.to_string()),
+                _ => None,
+            })
+            .unwrap_or_else(|| "unknown".to_string());
+        let peer_id = response
+            .records()
+            .find_map(|r| match &r.kind {
+                RecordKind::TXT(ref txts) => {
+                    for txt in txts {
+                        if let Some(id) = txt.strip_prefix("peer_id=") {
+                            return Some(id.to_string());
+                        }
+                    }
+                    None
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| peer_name.clone());
+        // Extract port from SRV record if available
+        let peer_port = response
+            .records()
+            .find_map(|r| match &r.kind {
+                RecordKind::SRV { port, .. } => Some(*port),
+                _ => None,
+            })
+            .unwrap_or(wt.port); // fallback to our port if not found
+        if let Some(ip) = addr {
+            // Ignore self
+            if peer_id == wt.peer_id {
+                continue;
+            }
+            let peer = PeerInfo {
+                id: peer_id.clone(),
+                name: peer_name.clone(),
+                ip,
+                port: peer_port, // Use discovered port
+            };
+            let mut peers = wt.peers.lock().await;
+            if !peers.contains_key(&peer.id) {
+                println!(
+                    "🔍 Discovered peer via mDNS: {} at {}:{}",
+                    peer_name, ip, peer_port
+                );
+                // Try to send our PeerInfo to the new peer via TCP
+                let my_info = PeerInfo {
+                    id: wt.peer_id.clone(),
+                    name: wt.name.clone(),
+                    ip: ip, // fallback to discovered IP if local IP is not available
+                    port: wt.port,
+                };
+                let msg = NetworkMessage::Discovery(my_info);
+                let socket_addr = std::net::SocketAddr::new(ip, peer_port);
+                let msg_bytes = serde_json::to_vec(&msg).unwrap();
+                tokio::spawn(async move {
+                    if let Ok(mut stream) = TcpStream::connect(socket_addr).await {
+                        let _ = stream.write_all(&msg_bytes).await;
+                    }
+                });
+            }
+            peers.insert(peer.id.clone(), peer);
+        }
     }
+    Ok(())
 }
 
-pub async fn start_discovery_listener(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
-    let socket = UdpSocket::bind("0.0.0.0:9999").await?;
-    println!(
-        "👂 Discovery listener started on port {}",
-        "9999".bright_blue()
-    );
-    let mut buf = [0; 1024];
-    loop {
-        match socket.recv_from(&mut buf).await {
-            Ok((len, _addr)) => {
-                if let Ok(network_msg) = serde_json::from_slice::<NetworkMessage>(&buf[..len]) {
-                    match network_msg {
-                        NetworkMessage::Discovery(peer_info) => {
-                            if peer_info.id != wt.peer_id {
-                                let mut peers = wt.peers.lock().await;
-                                if !peers.contains_key(&peer_info.id) {
-                                    let timestamp = Utc::now().format("%H:%M:%S");
-                                    println!(
-                                        "[{}] {} Discovered new peer: {} ({})",
-                                        timestamp.to_string().dimmed(),
-                                        "🔍".bright_green(),
-                                        peer_info.name.bright_cyan(),
-                                        peer_info.ip.to_string().yellow()
-                                    );
-                                }
-                                peers.insert(peer_info.id.clone(), peer_info);
-                            }
-                        }
-                        NetworkMessage::Heartbeat(peer_id) => {
-                            let peers = wt.peers.lock().await;
-                            if peers.contains_key(&peer_id) {
-                                // Peer is still alive
-                            }
-                        }
-                        NetworkMessage::Exit(peer_id) => {
-                            let mut peers = wt.peers.lock().await;
-                            if peers.remove(&peer_id).is_some() {
-                                let timestamp = Utc::now().format("%H:%M:%S");
-                                println!(
-                                    "[{}] {} Peer {} exited and was removed from the list.",
-                                    timestamp.to_string().dimmed(),
-                                    "❌".bright_red(),
-                                    peer_id.bright_yellow()
-                                );
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Err(e) => {
-                eprintln!("Error receiving discovery message: {}", e);
-            }
-        }
+fn to_ip_addr(record: &Record) -> Option<IpAddr> {
+    match record.kind {
+        RecordKind::A(addr) => Some(addr.into()),
+        RecordKind::AAAA(addr) => Some(addr.into()),
+        _ => None,
     }
 }

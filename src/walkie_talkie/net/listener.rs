@@ -4,7 +4,8 @@ use colored::*;
 use tokio::net::TcpListener;
 
 pub async fn start_tcp_listener(wt: &WalkieTalkie) -> Result<(), Box<dyn std::error::Error>> {
-    let listener = TcpListener::bind(format!("0.0.0.0:{}", wt.port)).await?;
+    let addr = format!("0.0.0.0:{}", wt.port);
+    let listener = TcpListener::bind(&addr).await?;
     println!(
         "🔗 TCP listener started on port {}",
         wt.port.to_string().bright_blue()
@@ -14,9 +15,12 @@ pub async fn start_tcp_listener(wt: &WalkieTalkie) -> Result<(), Box<dyn std::er
         let (stream, addr) = listener.accept().await?;
         let peers = wt.peers.clone();
         let message_sender = wt.message_sender.clone();
+        let peer_id = wt.peer_id.clone();
 
         tokio::spawn(async move {
-            if let Err(e) = handle_tcp_connection(stream, addr, peers, message_sender).await {
+            if let Err(e) =
+                handle_tcp_connection(stream, addr, peers, message_sender, peer_id).await
+            {
                 eprintln!("Error handling TCP connection from {}: {}", addr, e);
             }
         });
