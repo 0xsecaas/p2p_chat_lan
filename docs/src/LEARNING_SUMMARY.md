@@ -2,7 +2,7 @@
 
 Congratulations! You've built a complete peer-to-peer Chat application in Rust. This document summarizes what you've learned and provides guidance for further exploration.
 
-## 🏆 What You've Accomplished
+## 🏆 What I've Accomplished
 
 ### ✅ Built a Complete P2P Application
 
@@ -49,7 +49,7 @@ Congratulations! You've built a complete peer-to-peer Chat application in Rust. 
 
 ## 🎯 Real-World Applications
 
-The concepts you've learned apply to many real systems:
+The concepts we've learned apply to many real systems:
 
 ### File Sharing Networks
 
@@ -165,7 +165,7 @@ The concepts you've learned apply to many real systems:
 
 ## 🎉 Conclusion
 
-You've successfully built a complete P2P networking application! This is no small feat - you've implemented:
+We've implemented:
 
 - Automatic service discovery
 - Reliable peer-to-peer communication
