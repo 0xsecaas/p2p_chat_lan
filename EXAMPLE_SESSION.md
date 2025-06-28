@@ -12,7 +12,6 @@ $ ./target/release/p2p_chat start --port 8080 --name Alice
 📡 Your Name: Alice
 🔌 Listening on port: 8080
 🔗 TCP listener started on port 8080
-👂 Discovery listener started on port 9999
 
 💬
 ```
@@ -27,16 +26,9 @@ $ ./target/release/p2p_chat start --port 8081 --name Bob
 📡 Your Name: Bob
 🔌 Listening on port: 8081
 🔗 TCP listener started on port 8081
-👂 Discovery listener started on port 9999
 
 💬
 ```
-
-## What Happens Behind the Scenes
-
-1. **Alice starts**: Begins broadcasting discovery messages every 5 seconds
-2. **Bob starts**: Also begins broadcasting discovery messages
-3. **Mutual Discovery**: Both receive each other's broadcasts
 
 ## After Discovery (Alice's terminal)
 
