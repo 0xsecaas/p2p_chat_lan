@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "p2p-walkie-talkie")]
-#[command(about = "A simple peer-to-peer walkie-talkie application")]
+#[command(name = "p2p_chat")]
+#[command(about = "A simple peer-to-peer chat application")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -10,7 +10,7 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Start the walkie-talkie (discover peers and listen for messages)
+    /// Start the Chat (discover peers and listen for messages)
     Start {
         /// Port to listen on for TCP connections
         #[arg(short, long, default_value = "9999")]

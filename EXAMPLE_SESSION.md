@@ -1,33 +1,35 @@
 # 🎬 Example Session Walkthrough
 
-This shows what happens when you run multiple instances of the P2P walkie-talkie.
+This shows what happens when you run multiple instances of the P2P Chat.
 
 ## Terminal 1 - Alice
-```
-$ ./target/release/p2p-walkie-talkie start --port 8080 --name Alice
 
-🎙️  Starting P2P Walkie-Talkie...
+```
+$ ./target/release/p2p_chat start --port 8080 --name Alice
+
+🎙️  Starting P2P Chat...
 👤 Your ID: abc123-def456-ghi789
 📡 Your Name: Alice
 🔌 Listening on port: 8080
 🔗 TCP listener started on port 8080
 👂 Discovery listener started on port 9999
 
-💬 
+💬
 ```
 
 ## Terminal 2 - Bob (started 5 seconds later)
-```
-$ ./target/release/p2p-walkie-talkie start --port 8081 --name Bob
 
-🎙️  Starting P2P Walkie-Talkie...  
+```
+$ ./target/release/p2p_chat start --port 8081 --name Bob
+
+🎙️  Starting P2P Chat...
 👤 Your ID: xyz789-uvw456-rst123
 📡 Your Name: Bob
 🔌 Listening on port: 8081
 🔗 TCP listener started on port 8081
 👂 Discovery listener started on port 9999
 
-💬 
+💬
 ```
 
 ## What Happens Behind the Scenes
@@ -37,6 +39,7 @@ $ ./target/release/p2p-walkie-talkie start --port 8081 --name Bob
 3. **Mutual Discovery**: Both receive each other's broadcasts
 
 ## After Discovery (Alice's terminal)
+
 ```
 🔍 Discovered new peer: Bob (192.168.1.101)
 
@@ -49,6 +52,7 @@ $ ./target/release/p2p-walkie-talkie start --port 8081 --name Bob
 ```
 
 ## Bob Receives the Message
+
 ```
 📨 Alice says: Hello Bob!
 💬 Hey Alice! Nice to meet you!
@@ -56,16 +60,18 @@ $ ./target/release/p2p-walkie-talkie start --port 8081 --name Bob
 ```
 
 ## Alice Receives Bob's Reply
+
 ```
 📨 Bob says: Hey Alice! Nice to meet you!
-💬 
+💬
 ```
 
 ## Adding Charlie (Terminal 3)
-```
-$ ./target/release/p2p-walkie-talkie start --port 8082 --name Charlie
 
-🎙️  Starting P2P Walkie-Talkie...
+```
+$ ./target/release/p2p_chat_ start --port 8082 --name Charlie
+
+🎙️  Starting P2P Chat...
 👤 Your ID: pqr456-stu789-vwx123
 📡 Your Name: Charlie
 
@@ -80,19 +86,23 @@ $ ./target/release/p2p-walkie-talkie start --port 8082 --name Charlie
 ```
 
 ## All Terminals Receive Charlie's Message
+
 Alice's terminal:
+
 ```
 🔍 Discovered new peer: Charlie (192.168.1.102)
 📨 Charlie says: Hello everyone!
 ```
 
 Bob's terminal:
+
 ```
-🔍 Discovered new peer: Charlie (192.168.1.102)  
+🔍 Discovered new peer: Charlie (192.168.1.102)
 📨 Charlie says: Hello everyone!
 ```
 
 ## Network Diagram
+
 ```
     Alice (8080)
         |  \

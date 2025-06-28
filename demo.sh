@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# P2P Walkie-Talkie Demo Script
+# P2P Chat Demo Script
 # This script demonstrates the P2P functionality by running multiple instances
 
-echo "🎙️ P2P Walkie-Talkie Demo"
+echo "🎙️ P2P Chat Demo"
 echo "=========================="
 echo ""
 
@@ -23,7 +23,7 @@ echo ""
 cleanup() {
     echo ""
     echo "🧹 Cleaning up..."
-    pkill -f "p2p-walkie-talkie"
+    pkill -f "p2p_Chat"
     exit 0
 }
 
@@ -44,7 +44,7 @@ echo ""
 echo "Starting Alice on port 8080..."
 gnome-terminal --title="Alice (Port 8080)" -- bash -c "
     cd $(pwd)
-    ./target/release/p2p-walkie-talkie start --port 8080 --name Alice
+    ./target/release/p2p_chat start --port 8080 --name Alice
     read -p 'Press Enter to close...'
 " 2>/dev/null &
 
@@ -53,7 +53,7 @@ sleep 1
 echo "Starting Bob on port 8081..."
 gnome-terminal --title="Bob (Port 8081)" -- bash -c "
     cd $(pwd)
-    ./target/release/p2p-walkie-talkie start --port 8081 --name Bob
+    ./target/release/p2p_chat start --port 8081 --name Bob
     read -p 'Press Enter to close...'
 " 2>/dev/null &
 
@@ -62,7 +62,7 @@ sleep 1
 echo "Starting Charlie on port 8082..."
 gnome-terminal --title="Charlie (Port 8082)" -- bash -c "
     cd $(pwd)
-    ./target/release/p2p-walkie-talkie start --port 8082 --name Charlie
+    ./target/release/p2p_chat start --port 8082 --name Charlie
     read -p 'Press Enter to close...'
 " 2>/dev/null &
 

@@ -1,10 +1,10 @@
-//! TCP network module: Handles TCP connection logic for peer communication in the P2P walkie-talkie.
+//! TCP network module: Handles TCP connection logic for peer communication in the P2P Chat.
 //!
 //! This module is responsible for managing TCP connections with peers,
 //! handling incoming messages, and broadcasting outgoing messages.
 //! It utilizes Tokio's asynchronous runtime for non-blocking I/O operations.
 
-use crate::error::WalkieTalkieError;
+use crate::error::ChatError;
 use crate::peer::{NetworkMessage, PeerInfo};
 use chrono::Utc;
 use colored::*;
@@ -21,7 +21,7 @@ pub async fn handle_tcp_connection(
     peers: Arc<Mutex<HashMap<String, PeerInfo>>>,
     message_sender: broadcast::Sender<String>,
     peer_id: String,
-) -> Result<(), WalkieTalkieError> {
+) -> Result<(), ChatError> {
     let mut buf = [0; 1024];
 
     while let Ok(_n) = stream.readable().await {
@@ -70,7 +70,7 @@ pub async fn handle_tcp_connection(
                     }
                 }
             }
-            Err(e) => return Err(WalkieTalkieError::Network(e.to_string())),
+            Err(e) => return Err(ChatError::Network(e.to_string())),
         }
     }
     Ok(())

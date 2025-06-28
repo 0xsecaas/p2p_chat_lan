@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Quick Demo Script for P2P Walkie-Talkie
+# Quick Demo Script for P2P Chat
 # This script starts two instances to demonstrate P2P functionality
 
-echo "🎙️ P2P Walkie-Talkie Quick Demo"
+echo "🎙️ P2P Chat Quick Demo"
 echo "==============================="
 echo ""
 
@@ -33,7 +33,7 @@ trap cleanup SIGINT SIGTERM
 
 # Start Alice in background
 echo "🚀 Starting Alice on port 8080..."
-./target/release/p2p-walkie-talkie start --port 8080 --name Alice > alice.log 2>&1 &
+./target/release/p2p_chat start --port 8080 --name Alice > alice.log 2>&1 &
 ALICE_PID=$!
 
 # Wait a moment
@@ -41,7 +41,7 @@ sleep 2
 
 # Start Bob in background
 echo "🚀 Starting Bob on port 8081..."
-./target/release/p2p-walkie-talkie start --port 8081 --name Bob > bob.log 2>&1 &
+./target/release/p2p_chat start --port 8081 --name Bob > bob.log 2>&1 &
 BOB_PID=$!
 
 echo ""
@@ -57,7 +57,7 @@ echo "3. To send a test message, run:"
 echo "   echo 'Hello from script!' | nc localhost 8080"
 echo ""
 echo "💡 You can also open terminals and run manually:"
-echo "   ./target/release/p2p-walkie-talkie start --port 8082 --name Charlie"
+echo "   ./target/release/p2p_chat start --port 8082 --name Charlie"
 echo ""
 echo "🛑 Press Ctrl+C to stop the demo"
 echo ""

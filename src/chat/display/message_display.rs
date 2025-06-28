@@ -2,15 +2,15 @@
 //!
 //! This module contains the `start_message_display` function, which listens for messages
 //! on a broadcast channel and prints them to the standard output. It is designed to be
-//! run asynchronously, and it expects a reference to a `WalkieTalkie` instance, which
+//! run asynchronously, and it expects a reference to a `Peer` instance, which
 //! manages the underlying message sending and receiving.
 
-use crate::error::WalkieTalkieError;
-use crate::walkie_talkie::WalkieTalkie;
+use crate::chat::Peer;
+use crate::error::ChatError;
 use tokio::sync::broadcast;
 
-pub async fn start_message_display(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
-    let mut receiver = wt.message_sender.subscribe();
+pub async fn start_message_display(peer: &Peer) -> Result<(), ChatError> {
+    let mut receiver = peer.message_sender.subscribe();
     loop {
         match receiver.recv().await {
             Ok(message) => {

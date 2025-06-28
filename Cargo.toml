@@ -1,5 +1,5 @@
 [package]
-name = "p2p-walkie-talkie"
+name = "p2p-chat"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,9 +18,9 @@ mdns = "3.0.0"
 thiserror = "1.0"
 
 [lib]
-name = "p2p_walkie_talkie"
+name = "p2p_chat"
 path = "src/lib.rs"
 
 [[bin]]
-name = "p2p-walkie-talkie"
+name = "p2p-chat"
 path = "src/main.rs"

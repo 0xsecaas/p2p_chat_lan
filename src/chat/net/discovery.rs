@@ -1,11 +1,11 @@
-//! Peer discovery module: Handles mDNS-based peer discovery and advertisement for the P2P walkie-talkie network.
+//! Peer discovery module: Handles mDNS-based peer discovery and advertisement for the P2P Chat network.
 //!
-//! This module is responsible for discovering and advertising peers in the walkie-talkie network using mDNS.
+//! This module is responsible for discovering and advertising peers in the Chat network using mDNS.
 //! It handles both the sending and receiving of peer information, as well as the management of discovered peers.
 
-use crate::error::WalkieTalkieError;
+use crate::chat::Peer;
+use crate::error::ChatError;
 use crate::peer::{NetworkMessage, PeerInfo};
-use crate::walkie_talkie::WalkieTalkie;
 use futures_util::{pin_mut, stream::StreamExt};
 use libmdns;
 use mdns::{Record, RecordKind};
@@ -13,18 +13,18 @@ use std::{net::IpAddr, sync::Arc, time::Duration};
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
-const SERVICE_NAME: &str = "_walkietalkie._udp.local";
+const SERVICE_NAME: &str = "_chat._udp.local";
 
-pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> {
+pub async fn start_mdns(peer: Arc<Peer>) -> Result<(), ChatError> {
     // Spawn advertisement in a blocking thread
-    let wt_ad = wt.clone();
+    let peer_ad = peer.clone();
     tokio::task::spawn_blocking(move || {
         let responder = libmdns::Responder::new().unwrap();
         let _svc = responder.register(
-            "_walkietalkie._udp".to_owned(),
-            format!("{}-{}", wt_ad.name, wt_ad.peer_id),
-            wt_ad.port,
-            &[&format!("peer_id={}", wt_ad.peer_id)],
+            "_chat._udp".to_owned(),
+            format!("{}-{}", peer_ad.name, peer_ad.peer_id),
+            peer_ad.port,
+            &[&format!("peer_id={}", peer_ad.peer_id)],
         );
         loop {
             std::thread::sleep(std::time::Duration::from_secs(10));
@@ -33,7 +33,7 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
 
     // Discovery
     let stream = mdns::discover::all(SERVICE_NAME, Duration::from_secs(15))
-        .map_err(|e| WalkieTalkieError::Network(e.to_string()))?
+        .map_err(|e| ChatError::Network(e.to_string()))?
         .listen();
     pin_mut!(stream);
     while let Some(Ok(response)) = stream.next().await {
@@ -67,7 +67,7 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                 _ => None,
             })
             // fallback to our port if not found
-            .unwrap_or(wt.port);
+            .unwrap_or(peer.port);
         // Validate peer_id and port
         if peer_id.is_empty() || peer_port == 0 {
             eprint!("⚠️  Warning: Discovered peer has invalid ID or port.");
@@ -80,8 +80,7 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
         }
         if let Some(ip) = addr {
             // Ignore self
-            if peer_id == wt.peer_id {
-                eprint!("⚠️  Warning: Discovered peer is ourselves.");
+            if peer_id == peer.peer_id {
                 continue;
             }
             // Validate IP address (skip loopback and multicast)
@@ -89,31 +88,31 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                 eprint!("⚠️  Warning: Discovered peer has invalid IP address.");
                 continue;
             }
-            let peer = PeerInfo {
+            let peer_info = PeerInfo {
                 id: peer_id.clone(),
                 name: peer_name.clone(),
                 ip,
                 port: peer_port, // Use discovered port
             };
-            if !peer.is_valid() {
+            if !peer_info.is_valid() {
                 eprint!(
                     "⚠️  Warning: Discovered peer has invalid PeerInfo. {:?}",
-                    peer
+                    peer_info
                 );
                 continue;
             }
-            let mut peers = wt.peers.lock().await;
-            if !peers.contains_key(&peer.id) {
+            let mut peers = peer.peers.lock().await;
+            if !peers.contains_key(&peer_info.id) {
                 println!(
                     "🔍 Discovered peer via mDNS: {} at {}:{}",
                     peer_name, ip, peer_port
                 );
                 // Try to send our PeerInfo to the new peer via TCP
                 let my_info = PeerInfo {
-                    id: wt.peer_id.clone(),
-                    name: wt.name.clone(),
+                    id: peer.peer_id.clone(),
+                    name: peer.name.clone(),
                     ip, // fallback to discovered IP if local IP is not available
-                    port: wt.port,
+                    port: peer.port,
                 };
                 if !my_info.is_valid() {
                     println!(
@@ -130,7 +129,7 @@ pub async fn start_mdns(wt: Arc<WalkieTalkie>) -> Result<(), WalkieTalkieError> 
                     }
                 });
             }
-            peers.insert(peer.id.clone(), peer);
+            peers.insert(peer_info.id.clone(), peer_info);
         }
     }
     Ok(())

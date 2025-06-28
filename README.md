@@ -1,12 +1,12 @@
-# 🎙️ P2P Walkie-Talkie
+# 🎙️ P2P Chat
 
-A simple peer-to-peer walkie-talkie application built in Rust that demonstrates P2P networking concepts including peer discovery and message broadcasting.
+A text-based peer-to-peer Chat room built in Rust demonstrating P2P networking concepts including **peer discovery** and **message broadcasting**.
 
 ## 🚀 Features
 
-- **Automatic Peer Discovery**: Discovers other walkie-talkie instances on the local network
+- **Automatic Peer Discovery**: Discovers other Chat instances on the local network
 - **Real-time Messaging**: Send and receive messages instantly
-- **Decentralized**: No central server required - peers communicate directly
+- **Decentralized**: No central server required - peers communicate directly in LAN
 - **Simple CLI**: Easy-to-use command line interface
 - **Heartbeat System**: Keeps track of active peers
 
@@ -22,7 +22,7 @@ cargo build --release
 
 ## 📡 How to Use
 
-### Starting the Walkie-Talkie
+### Starting the Chat
 
 ```bash
 
@@ -69,7 +69,6 @@ Each instance will automatically discover the others and you can send messages b
 - `/list` - Show discovered peers
 - `/quit` - Exit application
 
-
 ## 🏗️ Architecture
 
 - **UDP port 9999**: Peer discovery broadcasts
@@ -80,11 +79,13 @@ Each instance will automatically discover the others and you can send messages b
 ### Core Components
 
 1. **Peer Discovery System**
+
    - Uses UDP broadcast on port 9999
    - Peers announce themselves every 5 seconds
    - Automatic detection of new peers joining the network
 
 2. **Message Broadcasting**
+
    - TCP connections for reliable message delivery
    - Messages are sent to all discovered peers
    - JSON serialization for cross-platform compatibility

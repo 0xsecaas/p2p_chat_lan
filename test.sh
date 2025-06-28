@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Manual Test Script for P2P Walkie-Talkie
+# Manual Test Script for P2P Chat
 # This script helps you test the P2P functionality step by step
 
-echo "🎙️ P2P Walkie-Talkie Manual Test"
+echo "🎙️ P2P Chat Manual Test"
 echo "================================="
 echo ""
 
@@ -24,9 +24,9 @@ echo ""
 echo "1. Open 2-3 terminal windows"
 echo "2. In each terminal, run one of these commands:"
 echo ""
-echo "   Terminal 1: ./target/release/p2p-walkie-talkie start --port 8080 --name Alice"
-echo "   Terminal 2: ./target/release/p2p-walkie-talkie start --port 8081 --name Bob"
-echo "   Terminal 3: ./target/release/p2p-walkie-talkie start --port 8082 --name Charlie"
+echo "   Terminal 1: ./target/release/p2p_chat start --port 8080 --name Alice"
+echo "   Terminal 2: ./target/release/p2p_chat start --port 8081 --name Bob"
+echo "   Terminal 3: ./target/release/p2p_chat start --port 8082 --name Charlie"
 echo ""
 echo "3. Wait 5-10 seconds for peer discovery"
 echo "4. In any terminal, type '/list' to see discovered peers"
@@ -50,7 +50,7 @@ echo "🧪 Quick Test - Starting one instance for 10 seconds..."
 echo "(This just verifies the app starts correctly)"
 echo ""
 
-timeout 10s ./target/release/p2p-walkie-talkie start --port 8083 --name TestRunner &
+timeout 10s ./target/release/p2p_chat start --port 8083 --name TestRunner &
 TEST_PID=$!
 
 sleep 2

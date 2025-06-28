@@ -1,6 +1,6 @@
-//! WalkieTalkie module: Provides the main struct and logic for peer-to-peer walkie-talkie functionality, including peer management, message broadcasting, and coordination of submodules.
+//! Chat module: Provides the main struct and logic for peer-to-peer Chat functionality, including peer management, message broadcasting, and coordination of submodules.
 //!
-//! This module defines the `WalkieTalkie` struct, which represents a peer in the walkie-talkie network.
+//! This module defines the `Peer` struct, which represents a peer in the Chat network.
 //! It handles the initialization of the peer, starting of necessary services like TCP listener,
 //! mDNS discovery, heartbeat sending, and CLI handling. It also provides functionality to broadcast
 //! messages to other peers.
@@ -17,7 +17,7 @@ pub mod display {
     pub mod message_display;
 }
 
-use crate::error::WalkieTalkieError;
+use crate::error::ChatError;
 use crate::peer::PeerInfo;
 use colored::*;
 use std::collections::HashMap;
@@ -26,7 +26,7 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 #[derive(Clone)]
-pub struct WalkieTalkie {
+pub struct Peer {
     pub peer_id: String,
     pub name: String,
     pub port: u16,
@@ -34,7 +34,7 @@ pub struct WalkieTalkie {
     pub message_sender: tokio::sync::broadcast::Sender<String>,
 }
 
-impl WalkieTalkie {
+impl Peer {
     pub fn new(name: String, port: u16) -> Self {
         // Validate name and port
         let valid_name = name.trim();
@@ -55,10 +55,7 @@ impl WalkieTalkie {
         }
     }
     pub async fn start(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!(
-            "{}",
-            "🎙️  Starting P2P Walkie-Talkie...".bright_cyan().bold()
-        );
+        println!("{}", "🎙️  Starting P2P Chat...".bright_cyan().bold());
         println!("👤 Your ID: {}", self.peer_id.bright_yellow());
         println!("📡 Your Name: {}", self.name.bright_green());
         println!(
@@ -107,7 +104,7 @@ impl WalkieTalkie {
         }
         Ok(())
     }
-    pub async fn broadcast_message(&self, content: &str) -> Result<(), WalkieTalkieError> {
+    pub async fn broadcast_message(&self, content: &str) -> Result<(), ChatError> {
         net::broadcast::broadcast_message(self, content).await
     }
 }
@@ -132,9 +129,9 @@ mod tests {
     }
 
     #[test]
-    fn test_walkie_talkie_new() {
-        let wt = WalkieTalkie::new("Tester".to_string(), 9000);
-        assert_eq!(wt.name, "Tester");
-        assert_eq!(wt.port, 9000);
+    fn test_chat_new() {
+        let peer = Peer::new("Tester".to_string(), 9000);
+        assert_eq!(peer.name, "Tester");
+        assert_eq!(peer.port, 9000);
     }
 }

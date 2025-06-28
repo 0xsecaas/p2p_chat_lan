@@ -1,9 +1,9 @@
-//! Error module: Defines custom error types for the P2P walkie-talkie application.
+//! Error module: Defines custom error types for the P2P Chat application.
 
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum WalkieTalkieError {
+pub enum ChatError {
     #[error("Network error: {0}")]
     Network(String),
     #[error("Serialization error: {0}")]
@@ -12,14 +12,14 @@ pub enum WalkieTalkieError {
     Unknown(String),
 }
 
-impl From<std::io::Error> for WalkieTalkieError {
+impl From<std::io::Error> for ChatError {
     fn from(e: std::io::Error) -> Self {
-        WalkieTalkieError::Network(e.to_string())
+        ChatError::Network(e.to_string())
     }
 }
 
-impl From<serde_json::Error> for WalkieTalkieError {
+impl From<serde_json::Error> for ChatError {
     fn from(e: serde_json::Error) -> Self {
-        WalkieTalkieError::Serialization(e.to_string())
+        ChatError::Serialization(e.to_string())
     }
 }

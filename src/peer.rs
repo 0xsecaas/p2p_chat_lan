@@ -1,7 +1,7 @@
-//! Peer module: Defines peer information, message types, and network message enums for the P2P walkie-talkie.
+//! Peer module: Defines peer information, message types, and network message enums for the P2P Chat.
 //!
 //! This module contains the structures and enums used for peer discovery, messaging, and network
-//! communication in the P2P walkie-talkie application. It includes the `PeerInfo` struct for
+//! communication in the P2P Chat application. It includes the `PeerInfo` struct for
 //! identifying peers in the network, the `Message` struct for chat messages, and the `NetworkMessage`
 //! enum for different types of network messages.
 
@@ -71,14 +71,14 @@ mod tests {
 
     #[test]
     fn test_peer_name_length() {
-        let long_name = "a".repeat(65);
-        let peer = PeerInfo {
+        let long_name = "a".repeat(1000);
+        let p1 = PeerInfo {
             id: "id".to_string(),
             name: long_name,
             ip: IpAddr::from_str("10.0.0.1").unwrap(),
             port: 1234,
         };
-        assert!(!peer.is_valid());
+        assert!(!p1.is_valid());
     }
 
     #[test]

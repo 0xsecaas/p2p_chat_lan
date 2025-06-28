@@ -1,21 +1,21 @@
 //! CLI display module: Handles user input, command parsing, and broadcasting messages or exit signals to peers.
 //!
 //! This module provides the functionality for the command-line interface (CLI) of the application,
-//! allowing users to interact with the Walkie Talkie network. It handles user commands such as
+//! allowing users to interact with the Chat network. It handles user commands such as
 //! listing peers, sending messages, and quitting the application. Additionally, it manages the
 //! broadcasting of exit signals to all connected peers when a user decides to quit.
 
-use crate::error::WalkieTalkieError;
+use crate::chat::Peer;
+use crate::error::ChatError;
 use crate::peer::NetworkMessage;
-use crate::walkie_talkie::WalkieTalkie;
 use serde_json;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 
-pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
-    let exit_msg = NetworkMessage::Exit(wt.peer_id.clone());
+pub async fn broadcast_exit(peer: &Peer) -> Result<(), ChatError> {
+    let exit_msg = NetworkMessage::Exit(peer.peer_id.clone());
     let msg_bytes = serde_json::to_vec(&exit_msg)?;
-    let peers = wt.peers.lock().await;
+    let peers = peer.peers.lock().await;
     for peer in peers.values() {
         if let Ok(mut stream) = TcpStream::connect((peer.ip, peer.port)).await {
             let _ = stream.write_all(&msg_bytes).await;
@@ -25,7 +25,7 @@ pub async fn broadcast_exit(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> 
     Ok(())
 }
 
-pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieError> {
+pub async fn start_cli_handler(peer: &Peer) -> Result<(), ChatError> {
     println!("\n📋 Commands:");
     println!("  /list    - List discovered peers");
     println!("  /msg <message> - Send message to all peers");
@@ -54,14 +54,14 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieErro
         }
         match input {
             "/quit" => {
-                if let Err(e) = crate::walkie_talkie::display::cli::broadcast_exit(wt).await {
+                if let Err(e) = crate::chat::display::cli::broadcast_exit(peer).await {
                     eprintln!("Error broadcasting exit: {}", e);
                 }
                 println!("\u{1F44B} Now Goodbye!");
                 std::process::exit(0);
             }
             "/list" => {
-                let peers = wt.peers.lock().await;
+                let peers = peer.peers.lock().await;
                 if peers.is_empty() {
                     println!("📭 No peers discovered yet.");
                 } else {
@@ -84,7 +84,7 @@ pub async fn start_cli_handler(wt: &WalkieTalkie) -> Result<(), WalkieTalkieErro
                 } else {
                     input
                 };
-                if let Err(e) = wt.broadcast_message(message_content).await {
+                if let Err(e) = peer.broadcast_message(message_content).await {
                     eprintln!("Failed to send message: {}", e);
                 }
             }
@@ -98,24 +98,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_walkie_talkie_name_validation() {
-        let wt = WalkieTalkie::new("".to_string(), 9000);
-        assert_eq!(wt.name, "Anonymous");
+    fn test_chat_name_validation() {
+        let p1 = Peer::new("".to_string(), 9000);
+        assert_eq!(p1.name, "Anonymous");
 
-        let long_name = "a".repeat(100);
-        let wt2 = WalkieTalkie::new(long_name, 9000);
-        assert_eq!(wt2.name, "Anonymous");
+        let invalid_name_length = 1000;
+        let long_name = "a".repeat(invalid_name_length);
+        let p2 = Peer::new(long_name, 9000);
+        assert_eq!(p2.name, "Anonymous");
 
         let valid_name = "Bob".to_string();
-        let wt3 = WalkieTalkie::new(valid_name.clone(), 9000);
-        assert_eq!(wt3.name, valid_name);
+        let p3 = Peer::new(valid_name.clone(), 9000);
+        assert_eq!(p3.name, valid_name);
     }
 
     #[test]
-    fn test_walkie_talkie_port_validation() {
-        let wt = WalkieTalkie::new("Alice".to_string(), 0);
-        assert_eq!(wt.port, 8080);
-        let wt2 = WalkieTalkie::new("Alice".to_string(), 1234);
-        assert_eq!(wt2.port, 1234);
+    fn test_chat_port_validation() {
+        let p1 = Peer::new("Alice".to_string(), 0);
+        assert_eq!(p1.port, 8080);
+        let p2 = Peer::new("Alice".to_string(), 1234);
+        assert_eq!(p2.port, 1234);
     }
 }
